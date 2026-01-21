@@ -1,30 +1,44 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getBlogs, getBlogById, createBlog } from "../api/blogs"
-import type { Blog } from "../api/blogs"
+import type { Blog } from "../types/blog.ts"
 
-// Fetch all blogs
+const API_URL = "http://localhost:3001/blogs"
+
 export const useBlogs = () => {
   return useQuery<Blog[]>({
     queryKey: ["blogs"],
-    queryFn: getBlogs,
+    queryFn: async () => {
+      const res = await fetch(API_URL)
+      if (!res.ok) throw new Error("Failed to fetch blogs")
+      return res.json()
+    },
   })
 }
 
-// Fetch blog by ID
-export const useBlogById = (id: number | null) => {
+export const useBlogById = (id: number) => {
   return useQuery<Blog>({
-    queryKey: ["blog", id],
-    queryFn: () => getBlogById(id as number),
+    queryKey: ["blogs", id],
     enabled: !!id,
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/${id}`)
+      if (!res.ok) throw new Error("Failed to fetch blog")
+      return res.json()
+    },
   })
 }
 
-// Create new blog
 export const useCreateBlog = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: createBlog,
+    mutationFn: async (blog: Omit<Blog, "id">) => {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(blog),
+      })
+      if (!res.ok) throw new Error("Failed to create blog")
+      return res.json()
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["blogs"] })
     },

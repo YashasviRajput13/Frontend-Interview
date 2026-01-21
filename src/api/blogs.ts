@@ -1,32 +1,33 @@
 import axios from "axios"
 
-const API_URL = "http://localhost:3001"
-
 export interface Blog {
   id?: number
   title: string
   category: string[]
   description: string
-  content: string
-  coverImage: string
   date: string
+  coverImage: string
+  content: string
 }
 
-// GET all blogs
+const api = axios.create({
+  baseURL: "http://localhost:3001",
+  headers: {
+    "Content-Type": "application/json",
+  },
+})
+
 export const getBlogs = async (): Promise<Blog[]> => {
-  const res = await axios.get(`${API_URL}/blogs`)
+  const res = await api.get("/blogs")
   return res.data
 }
 
-// GET blog by ID
 export const getBlogById = async (id: number): Promise<Blog> => {
-  const res = await axios.get(`${API_URL}/blogs/${id}`)
+  const res = await api.get(`/blogs/${id}`)
   return res.data
 }
 
-// CREATE blog
 export const createBlog = async (blog: Blog): Promise<Blog> => {
-  const res = await axios.post(`${API_URL}/blogs`, blog)
+  const res = await api.post("/blogs", blog)
   return res.data
 }
-
